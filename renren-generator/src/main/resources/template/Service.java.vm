@@ -1,0 +1,44 @@
+package ${package}.${moduleName}.service;
+
+import ${package}.${moduleName}.entity.${className}Entity;
+
+import java.util.Map;
+
+/**
+ * ${comments}
+ *
+ * @author ${author}
+ * @email ${email}
+ * @date ${datetime}
+ */
+public interface ${className}Service {
+
+    /**
+    * 查询
+    * @param map
+    * @return
+    */
+    List<${className}Entity> queryList(Map<String, Object> map);
+
+    /**
+    * 插入一条记录
+    * @param user
+    */
+    void insert(${className}Entity user);
+
+    /**
+     * 更新一条记录
+     * @param user
+     */
+    void updateById(${className}Entity user);
+    /**
+     * 批量删除
+     * @param user
+     */
+    void deleteById(${className}Entity user);
+    /**
+    * 查询总数
+    */
+    int queryTotal(Map<String, Object> map);
+}
+

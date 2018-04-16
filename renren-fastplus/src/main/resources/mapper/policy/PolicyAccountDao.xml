@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.policy.dao.PolicyAccountDao">
+
+    <resultMap type="io.renren.modules.policy.entity.PolicyAccountEntity" id="policyAccountResultMap">
+        <result property="id" column="id"/>
+        <result property="accountAddress" column="account_address"/>
+        <result property="pwd" column="pwd"/>
+        <result property="privateKey" column="private_key"/>
+        <result property="freezeAmount" column="freeze_amount"/>
+        <result property="availableAmount" column="available_amount"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="remark" column="remark"/>
+        <result property="sort" column="sort"/>
+        <result property="state" column="state"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="version" column="version"/>
+
+        <association property="member" javaType="io.renren.modules.member.entity.MemberEntity">
+            <result property="id" column="id"/>
+            <result property="mobile" column="mobile"/>
+        </association>
+        <association property="lifePolicy" javaType="io.renren.modules.policy.entity.LifePolicyEntity">
+            <result property="id" column="id"/>
+            <result property="insuredPeopleName" column="insured_people_name"/>
+            <result property="policyNo" column="policy_no" />
+        </association>
+        <association property="coinInfo" javaType="io.renren.modules.coinInfo.entity.CoinInfoEntity">
+            <result property="id" column="id"/>
+            <result property="nameCN" column="name_cn"/>
+            <result property="nameEN" column="name_en"/>
+        </association>
+    </resultMap>
+
+    <select id="queryTotal" resultType="int">
+        select count(*) from `mc_policy_account` pa, `wybb_member` m, `wybb_life_policy` lp
+        <where>
+            m.`id` = pa.`member_id` and lp.`id` = pa.`life_policy_id`
+
+            <if test="mobile != null and mobile.trim() != ''">
+                and m.`mobile` like concat('%',#{mobile},'%')
+            </if>
+            <if test="createdStartTime != null and createdStartTime.trim() != ''">
+                and pa.`created_at` &gt;= #{createdStartTime}
+            </if>
+            <if test="createdEndTime != null and createdEndTime.trim() != ''">
+                and pa.`created_at` &lt;= #{createdEndTime}
+            </if>
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+    </select>
+
+    <select id="queryList" resultMap="policyAccountResultMap">
+        select * from `mc_policy_account` pa, `wybb_member` m, `wybb_life_policy` lp
+        <where>
+            m.`id` = pa.`member_id` and lp.`id` = pa.`life_policy_id`
+
+            <if test="mobile != null and mobile.trim() != ''">
+                and m.`mobile` like concat('%',#{mobile},'%')
+            </if>
+            <if test="createdStartTime != null and createdStartTime.trim() != ''">
+                and pa.`created_at` &gt;= #{createdStartTime}
+            </if>
+            <if test="createdEndTime != null and createdEndTime.trim() != ''">
+                and pa.`created_at` &lt;= #{createdEndTime}
+            </if>
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+        order by pa.`id` desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryObject" resultMap="policyAccountResultMap">
+        SELECT * FROM `mc_policy_account` pa, `wybb_member` m, `wybb_life_policy` lp, `mc_coin_info` ci
+        <where>
+            m.`id` = pa.`member_id` AND lp.`id` = pa.`life_policy_id` AND pa.`coin_id` = ci.`id` AND pa.`id` = #{value}
+        </where>
+	</select>
+
+    <insert id="save" parameterType="io.renren.modules.policy.entity.PolicyAccountEntity" useGeneratedKeys="true" keyProperty="id"></insert>
+
+    <update id="update" parameterType="io.renren.modules.policy.entity.PolicyAccountEntity">
+        update wybb_policy_account
+        <set>
+            <!--<if test="realname != null">`realname` = #{realname},</if>-->
+            <!--<if test="mobile != null">`mobile` = #{mobile},</if>-->
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBatch">
+        delete from wybb_policy_account where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.wybbbatchtransfer.dao.WybbBatchtransferDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.wybbbatchtransfer.entity.WybbBatchtransferEntity" id="wybbBatchtransferMap">
+        <result property="id" column="id"/>
+        <result property="payaddress" column="payaddress"/>
+        <result property="gatheraddress" column="gatheraddress"/>
+        <result property="amount" column="amount"/>
+        <result property="createdate" column="createdate"/>
+        <result property="blocknum" column="blocknum"/>
+        <result property="tranhash" column="tranhash"/>
+        <result property="flag" column="flag"/>
+        <result property="status" column="status"/>
+        <result property="remark1" column="remark1"/>
+        <result property="remark2" column="remark2"/>
+    </resultMap>
+    <!--查询 -->
+    <select id="queryList" resultType="io.renren.modules.wybbbatchtransfer.entity.WybbBatchtransferEntity">
+        select * from wybb_batchtransfer
+        <where>
+            <if test="transferstartDate !=null and transferstartDate.trim()!= '' ">
+                `createdate` >= #{transferstartDate}
+            </if>
+            <if test="transferendDate !=null and transferendDate.trim()!= '' ">
+                <![CDATA[ AND `createdate` <= #{transferendDate}]]>
+            </if>
+            <if test="status !=null and status.trim()!= '' ">
+                AND `status` = #{status}
+            </if>
+            <if test="flag !=null and flag.trim()!= '' ">
+                AND `flag` = #{flag}
+            </if>
+        </where>
+        order by id desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+    <select id="queryTotal" resultType="int">
+        select count(*) from wybb_batchtransfer
+        <where>
+            <if test="transferstartDate !=null and transferstartDate.trim()!= '' ">
+                `createdate` >= #{transferstartDate}
+            </if>
+            <if test="transferendDate !=null and transferendDate.trim()!= '' ">
+                <![CDATA[ AND `createdate` <= #{transferendDate}]]>
+            </if>
+            <if test="status !=null and status.trim()!= '' ">
+                AND `status` = #{status}
+            </if>
+            <if test="flag !=null and flag.trim()!= '' ">
+                AND `flag` = #{flag}
+            </if>
+        </where>
+    </select>
+
+    <insert id="save" parameterType="io.renren.modules.wybbbatchtransfer.entity.WybbBatchtransferEntity" useGeneratedKeys="true" keyProperty="id">
+        insert into wybb_batchtransfer
+        (
+        `payaddress`,
+        `gatheraddress`,
+        `amount`,
+        `createdate`,
+        `blocknum`,
+        `tranhash`,
+        `flag`,
+        `status`,
+        `remark1`,
+        `remark2`
+        )
+        values
+        (
+        #{payaddress},
+        #{gatheraddress},
+        #{amount},
+        #{createdate},
+        #{blocknum},
+        #{tranhash},
+        #{flag},
+        #{status},
+        #{remark1},
+        #{remark2}
+        )
+    </insert>
+</mapper>

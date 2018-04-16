@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/daterangepicker.css">
+    <link rel="stylesheet" href="../../css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <script src="../../libs/jquery.min.js"></script>
+    <script src="../../plugins/layer/layer.js"></script>
+    <script src="../../libs/bootstrap.min.js"></script>
+    <script src="../../libs/vue.min.js"></script>
+    <script src="../../plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="../../plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="../../plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="../../js/common.js"></script>
+    <script src="../../libs/moment.js"></script>
+    <script src="../../libs/daterangepicker.js"></script>
+    <script src="../../libs/ajaxupload.js"></script>
+</head>
+<body>
+
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <form class="form-horizontal row" style="width: 100%">
+                <div class="form-group col-xs-3">
+                    <label class="col-sm-4 control-label" for="query_name">义工姓名</label>
+                    <div class="col-sm-8">
+                        <input id="query_name" type="text" class="form-control" v-model="q.name" @keyup.enter="query" placeholder="义工姓名"/>
+                    </div>
+                </div>
+                <div class="form-group col-xs-3">
+                    <label class="col-sm-4 control-label" for="query_online">在线状态</label>
+                    <div class="col-sm-8">
+                        <select id="query_online" class="form-control" v-model="q.online">
+                            <option v-for="option in onLineOptions" :value="option.value">{{ option.text }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group col-xs-3">
+                    <label class="col-sm-4 control-label" for="query_created_time">创建时间</label>
+                    <div class="col-sm-8">
+                        <input id="query_created_time" class="form-control" placeholder="创建起止时间"/>
+                    </div>
+                </div>
+                <div class="form-group col-xs-3" style="float: right">
+                    <label class="col-sm-4 control-label"></label>
+                    <div class="col-sm-3" style="float: right">
+                        <a class="btn btn-default" @click="query">查询</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div id="toolbar_btn" style="margin-left: 20px;">
+            <a title="新建义工" v-if="hasPermission('manager:c2c:volunteer:save')" class="btn btn-primary btn-sm" @click="add"><i class="fa fa-plus"></i></a>&nbsp;&nbsp;
+            <a title="编辑" v-if="hasPermission('manager:c2c:volunteer:update')" class="btn btn-primary btn-sm" @click="update"><i class="fa fa-pencil-square-o"></i></a>&nbsp;&nbsp;
+            <a v-if="hasPermission('manager:c2c:volunteer:modifyOnLine')" class="btn btn-primary btn-sm" @click="modifyOnLine">修改在线状态</a>
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+    <div v-show="!showList" class="panel panel-default">
+        <div class="panel-heading"><strong>{{title}}</strong></div>
+        <form class="form-horizontal" style="width: 50%;">
+            <div class="form-group">
+                <label class="col-sm-4 control-label" for="product">义工姓名</label>
+                <div class="col-sm-8">
+                    <input id="product" type="text" class="form-control" v-model="volunteer.name" placeholder="义工姓名"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label" for="mobile">手机号</label>
+                <div class="col-sm-8">
+                    <input id="mobile" type="text" class="form-control" v-model="volunteer.mobile" placeholder="手机号"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label" for="fromAddress">钱包地址</label>
+                <div class="col-sm-8">
+                    <textarea id="fromAddress" class="form-control" rows="3" v-model="volunteer.fromAddress" placeholder="钱包地址"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label" for="amountTransactionHash">保证金查询URL</label>
+                <div class="col-sm-8">
+                    <textarea id="amountTransactionHash" class="form-control" rows="3" v-model="volunteer.amountTransactionHash" placeholder="保证金查询URL"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label" for="amountTransactionHash">保证金查询URL</label>
+                <div class="col-sm-8">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" v-model='paymentType' value="bankpay"> 银行卡
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" v-model='paymentType' value="weixinpay"> 微信支付
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" v-model='paymentType' value="alipay"> 支付宝支付
+                    </label>
+                </div>
+            </div>
+
+            <!-- 银行卡信息 -->
+            <div class="form-group" v-show="bankPayShow">
+                <legend>银行卡信息</legend>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="bankPayName" >收款人姓名</label>
+                    <div class="col-sm-8">
+                        <input id="bankPayName" type="text" class="form-control" v-model="bankPay.name" placeholder="收款人姓名"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="bankPayBankName" >开户银行</label>
+                    <div class="col-sm-8">
+                        <input id="bankPayBankName" type="text" class="form-control" v-model="bankPay.bankCardName" placeholder="开户银行"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="bankPayBankAddr">开户分行</label>
+                    <div class="col-sm-8">
+                        <input id="bankPayBankAddr" type="text" class="form-control" v-model="bankPay.bankCardAddress" placeholder="开户分行"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="bankPayCardNo">银行卡卡号</label>
+                    <div class="col-sm-8">
+                        <input id="bankPayCardNo" type="text" class="form-control" v-model="bankPay.bankCardNo" placeholder="银行卡卡号"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 微信支付 -->
+            <div class="form-group" v-show="weixinPayShow">
+                <legend>微信支付信息</legend>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="weixinPayName">昵称</label>
+                    <div class="col-sm-8">
+                        <input id="weixinPayName" type="text" class="form-control" v-model="weixinPay.name" placeholder="收款人姓名"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="uploadWeiXinQR">收款二维码</label>
+                    <div class="col-sm-8" id="uploadWeiXinQR">
+                        <img  class="img-rounded" style="max-width: 200px" :src="weixinPay.payQrcode"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 支付宝支付 -->
+            <div class="form-group" v-show="aliPayShow">
+                <legend>支付宝信息</legend>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="aliPayName">昵称</label>
+                    <div class="col-sm-8">
+                        <input id="aliPayName" type="text" class="form-control" v-model="aliPay.name" placeholder="昵称"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="aliPayCardNo">账号</label>
+                    <div class="col-sm-8">
+                        <input id="aliPayCardNo" type="text" class="form-control" v-model="aliPay.bankCardNo" placeholder="账号"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="uploadAliQR">收款二维码</label>
+                    <div class="col-sm-8" id="uploadAliQR">
+                        <img class="img-rounded" style="max-width: 200px" :src="aliPay.payQrcode"/>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row" style="margin-bottom: 20px;">
+                <label class="col-sm-4 control-label"></label>
+                <div class="col-sm-8">
+                    <input type="button" class="btn btn-primary" @click="saveOrUpdate" value="确定" />&nbsp;&nbsp;
+                    <input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../../js/modules/c2c/volunteer.js"></script>
+</body>
+</html>

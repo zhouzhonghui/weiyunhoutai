@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.c2c.dao.VolunteerDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.c2c.entity.VolunteerEntity" id="volunteerResultMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="online" column="online"/>
+        <result property="deposit" column="deposit"/>
+        <result property="managerId" column="manager_id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="remark" column="remark"/>
+        <result property="state" column="state"/>
+        <result property="sort" column="sort"/>
+        <result property="amount" column="amount"/>
+        <result property="fromAddress" column="from_address"/>
+        <result property="completeNumber" column="complete_number"/>
+        <result property="completeRate" column="complete_rate"/>
+        <result property="mobile" column="mobile"/>
+        <result property="walletPath" column="wallet_path"/>
+        <result property="walletPwd" column="wallet_pwd"/>
+
+        <collection property="paymentMethodList" ofType="io.renren.modules.c2c.entity.PaymentMethodEntity" select="getPaymentMethods" column="id"></collection>
+
+    </resultMap>
+
+    <sql id="query_where">
+        <where>
+            1 = 1
+            <!-- 姓名 -->
+            <if test="name != null and name.trim() != ''">
+                AND v.`name` like concat('%', #{name}, '%')
+            </if>
+            <!-- 在线状态 -->
+            <if test="online != null and online.trim() != ''">
+                AND v.`online` = #{online}
+            </if>
+            <!-- 创建开始时间 -->
+            <if test="createdStartTime != null and createdStartTime.trim() != ''">
+                AND v.created_at &gt;= #{createdStartTime}
+            </if>
+            <!-- 创建结束时间 -->
+            <if test="createdEndTime != null and createdEndTime.trim() != ''">
+                AND v.created_at &lt;= #{createdEndTime}
+            </if>
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+    </sql>
+
+    <!-- 查询总数 -->
+    <select id="queryTotal" resultType="int">
+        SELECT count(1) FROM `mc_volunteer` v
+        <include refid="query_where"/>
+    </select>
+
+    <!-- 查询列表  resultMap="volunteerResultMap" -->
+    <select id="queryList" resultType="io.renren.modules.c2c.entity.VolunteerEntity">
+        SELECT * FROM `mc_volunteer` v
+        <include refid="query_where"/>
+        order by v.`id` desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+
+    <!-- 查询支付方式 -->
+    <select id="getPaymentMethods" parameterType="long" resultType="io.renren.modules.c2c.entity.PaymentMethodEntity">
+        select * from `mc_payment_method` pm where pm.state = 1 and pm.volunteer_id = #{id}
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="queryObject" resultMap="volunteerResultMap">
+        select * from `mc_volunteer` v where v.`id` = #{value}
+    </select>
+
+    <!-- 新增 -->
+    <insert id="save" parameterType="io.renren.modules.c2c.entity.VolunteerEntity" useGeneratedKeys="true" keyProperty="id">
+        insert into mc_volunteer
+        (name, online, deposit,
+        manager_id, created_at, updated_at,
+        remark, state, sort,
+        amount, from_address, complete_number,
+        complete_rate, mobile, wallet_path,
+        amount_transaction_hash, wallet_pwd)
+        values
+        (#{name,jdbcType=VARCHAR}, #{online,jdbcType=INTEGER}, #{deposit,jdbcType=INTEGER},
+        #{managerId,jdbcType=BIGINT}, now(), #{updatedAt,jdbcType=TIMESTAMP},
+        #{remark,jdbcType=VARCHAR}, #{state,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER},
+        #{amount,jdbcType=DECIMAL}, #{fromAddress,jdbcType=VARCHAR}, #{completeNumber,jdbcType=INTEGER},
+        #{completeRate,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{walletPath,jdbcType=VARCHAR},
+        #{amountTransactionHash,jdbcType=VARCHAR}, #{walletPwd,jdbcType=VARCHAR})
+    </insert>
+
+    <!-- 修改 -->
+    <update id="update" parameterType="io.renren.modules.c2c.entity.VolunteerEntity">
+        UPDATE
+          `mc_volunteer`
+        SET
+          `name` = #{volunteer.name},
+          `mobile` = #{volunteer.mobile},
+          `from_address` = #{volunteer.fromAddress},
+          `amount_transaction_hash` = #{volunteer.amountTransactionHash},
+          `updated_at` = now()
+        where
+          id = #{volunteer.id};
+    </update>
+
+    <!-- 删除 -->
+    <delete id="deleteBatch"></delete>
+
+    <!-- 修改义工在线状态 -->
+    <update id="modifyOnLine" parameterType="map">
+        update
+          `mc_volunteer` v
+        set
+          v.`online` = #{onLine},
+          v.`updated_at` = now()
+        where
+          v.`id` = #{id}
+    </update>
+
+    <update id="updateCompleteNumById">
+        update
+          `mc_volunteer` v
+        set
+          v.`complete_number` = v.complete_number + 1,
+          v.`updated_at` = now()
+        where
+          v.`id` = #{value}
+    </update>
+</mapper>

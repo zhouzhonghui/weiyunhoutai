@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>资讯信息表</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link href="../../swagger/umeditor/_css/umeditor.css" type="text/css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../css/animate.css">
+    <link rel="stylesheet" href="../../css/loading.css">
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+
+    <link rel="stylesheet" href="../../plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <script src="../../libs/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../../swagger/umeditor/umeditor.config.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../../swagger/umeditor/editor_api.js"></script>
+    <script type="text/javascript" src="../../swagger/umeditor/lang/zh-cn/zh-cn.js"></script>
+    <script src="../../plugins/layer/layer.js"></script>
+    <script src="../../libs/bootstrap.min.js"></script>
+    <script src="../../libs/vue.min.js"></script>
+    <script src="../../plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="../../plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="../../js/common.js"></script>
+    <script src="../../libs/bootstrap-datetimepicker.min.js"></script>
+    <script src="../../libs/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+    <script src="../../libs/ajaxupload.js"></script>
+    <style>
+        .imgTable {
+
+        }
+
+        .imgTable tr {
+            height: 100px;
+            overflow: hidden;
+        }
+
+        .imgTable img {
+            height: 100px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .imgTable textarea {
+            height: 100px;
+        }
+
+        .imgTable button {
+            margin: 0 auto;
+            display: block;
+            margin-top: 30%;
+        }
+
+        .coverImg img {
+            height: 100px;
+            margin-right: 30px;
+        }
+
+        label {
+            font-weight: normal;
+        }
+
+        .editCss {
+            width: 800px;
+            height: 400px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <a v-if="hasPermission('generator:newsinfo:save')" class="btn btn-primary" @click="add"><i
+                    class="fa fa-plus"></i>&nbsp;新增</a>
+            <a v-if="hasPermission('generator:newsinfo:update')" class="btn btn-primary" @click="update"><i
+                    class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+            <a v-if="hasPermission('generator:newsinfo:delete')" class="btn btn-primary" @click="del"><i
+                    class="fa fa-trash-o"></i>&nbsp;删除</a>
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+    <div v-show="!showList" class="panel panel-default">
+        <div class="panel-heading">{{title}}</div>
+        <form class="form-horizontal" style="width: 850px;">
+            <input type="hidden" id="attaid" v-model="newsInfo.attaid" value=""/>
+            <input type="hidden" class="form-control" v-model="newsInfo.status"/>
+            <input type="hidden" class="form-control" v-model="newsInfo.content"/>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">标题（后台）</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model.trim="newsInfo.backtitle" maxlength="40"
+                           placeholder="标题（后台）"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">标题（前端）</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model.trim="newsInfo.fronttitle" maxlength="40"
+                           placeholder="标题（前端）"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">素材类型
+                </div>
+                <div class="col-sm-10" @click="newstype">
+                    <div class="radio-inline">
+                        <label>
+                            <input type="radio" name="newstype" v-model="newsInfo.newstype" value="0" checked/>
+                            图文
+                        </label>
+                    </div>
+                    <div class="radio-inline">
+                        <label>
+                            <input type="radio" name="newstype" v-model="newsInfo.newstype" value="1"/> 图片
+                        </label>
+                    </div>
+                    <div class="radio-inline">
+                        <label>
+                            <input type="radio" name="newstype" v-model="newsInfo.newstype" value="2"/> 视频
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">封面类型
+                </div>
+                <div class="col-sm-10" @click="coverType">
+
+                    <div class="radio-inline">
+                        <label>
+                            <input type="radio" name="covertype" v-model="newsInfo.covertype" value="0"/>
+                            单封图
+                        </label>
+                    </div>
+                    <div class="radio-inline">
+                        <label>
+                            <input type="radio" name="covertype" v-model="newsInfo.covertype" value="1"/>
+                            三封图
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">封面展示
+                </div>
+                <div class="col-sm-10 coverImg">
+                    <img id="addCoverImg0" class="img-rounded" src=""/>
+                    <img id="addCoverImg1" v-show="coverShow" class="img-rounded" src="../../swagger/images/add_img.png"/>
+                    <img id="addCoverImg2" v-show="coverShow" class="img-rounded" src="../../swagger/images/add_img.png"/>
+                </div>
+            </div>
+            <div class="form-group" v-show="newsShow">
+                <div class="col-sm-2 control-label">素材展示
+                </div>
+                <div class="col-sm-10 newsImg">
+
+                    <button id="addImg" type="button" class="btn btn-info">添加</button>
+                    <div style="height: 30px"></div>
+                    <table class="imgTable table table-bordered" v-show="tableShow">
+                        <tr v-for="(item , index) in imgTable">
+                            <td><img class="img-rounded" :src="item.imgSrc"/></td>
+                            <td>
+                                <textarea class="form-control" rows="3" maxlength="150" v-model.trim="item.textarea"></textarea>
+                            </td>
+                            <td>
+                                <button type="button" @click="delImg(item.dataId,index)" class="btn btn-danger">删除
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+
+                </div>
+            </div>
+            <div class="form-group" v-show="contentShow">
+                <div class="col-sm-2 control-label">正文</div>
+                <div class="col-sm-10">
+                    <!--<input type="text" class="form-control" v-model="newsInfo.content" placeholder="正文"/>-->
+                    <script type="text/plain" id="myEditor" class="editCss">
+                        <p>这里我可以写一些输入提示</p>
+
+
+
+
+                    </script>
+                </div>
+            </div>
+
+            <div class="form-group" v-show="videoShow">
+                <div class="col-sm-2 control-label">视频链接地址</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model.trim="newsInfo.videoUrl" maxlength="400"
+                           placeholder="视频链接地址"/>
+                </div>
+            </div>
+            <div class="form-group" v-show="videoShow">
+                <div class="col-sm-2 control-label">说明文字</div>
+                <div class="col-sm-10">
+                    <textarea class="form-control" rows="3" v-model.trim="newsInfo.videoDesc" maxlength="150"></textarea>
+                    <!--<input type="text" class="form-control" v-model="newsInfo.linkurl" placeholder="说明文字"/>-->
+                </div>
+            </div>
+            <!--<div class="form-group">-->
+            <!--<div class="col-sm-2 control-label">生效时间</div>-->
+            <!--<div class="col-sm-10">-->
+            <!--<input type="text" class="form-control" v-model="newsInfo.publishtime" placeholder="生效时间"/>-->
+            <!--</div>-->
+            <!--</div>-->
+            <div class="form-group">
+                <div class="col-sm-2 control-label">生效时间</div>
+                <!--<div class="col-sm-10">-->
+                <!--<input type="text" class="form-control" v-model="newsInfo.publishtime" placeholder="生效时间"/>-->
+                <!--</div>-->
+
+                <div id="messageSendTime" class="input-group date form_datetime col-sm-8" data-date="" data-date-format="yyyy-mm-dd hh:ii"
+                     data-link-format="yyyy-mm-dd hh:ii" data-link-field="inpue_2">
+                    <input class="form-control" type="text" value="" readonly >
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>
+                </div>
+                <input type="hidden" id="inpue_2" v-model="newsInfo.publishtime"/>
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label">置顶
+                </div>
+                <div class="col-sm-10" @click="setTopFun">
+                    <label class="radio-inline">
+                        <input type="radio" name="istop" v-model="newsInfo.istop" value="0"/> 否
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="istop" v-model="newsInfo.istop" value="1"/> 是
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">热门
+                </div>
+                <div class="col-sm-10">
+                    <label class="radio-inline">
+                        <input type="radio" name="ishot" v-model="newsInfo.ishot" value="0"/> 否
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="ishot" v-model="newsInfo.ishot" value="1"/> 是
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">文章类型
+                </div>
+                <div class="col-sm-10" @click="newsfromFun">
+                    <label class="radio-inline">
+                        <input type="radio" name="newsfrom" v-model="newsInfo.newsfrom" value="0"/> 原创
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="newsfrom" v-model="newsInfo.newsfrom" value="1"/> 转载
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">作者/来源名</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model.trim="newsInfo.auther" maxlength="80"
+                           placeholder="作者/来源名"/>
+                </div>
+            </div>
+            <div class="form-group" v-show="linkurlShow">
+                <div class="col-sm-2 control-label">文章链接地址</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model.trim="newsInfo.linkurl" maxlength="400"
+                           placeholder="文章链接地址"/>
+                </div>
+            </div>
+            <!--<div class="form-group">-->
+            <!--<div class="col-sm-2 control-label">创建时间</div>-->
+            <!--<div class="col-sm-10">-->
+            <!--<input type="text" class="form-control" v-model="newsInfo.createat" placeholder="创建时间"/>-->
+            <!--</div>-->
+            <!--</div>-->
+            <!--<div class="form-group">-->
+            <!--<div class="col-sm-2 control-label">最后修改时间</div>-->
+            <!--<div class="col-sm-10">-->
+            <!--<input type="text" class="form-control" v-model="newsInfo.modityat" placeholder="最后修改时间"/>-->
+            <!--</div>-->
+            <!--</div>-->
+            <!--<div class="form-group">-->
+            <!--<div class="col-sm-2 control-label">创建人</div>-->
+            <!--<div class="col-sm-10">-->
+            <!--<input type="text" class="form-control" v-model="newsInfo.createuser" placeholder="创建人"/>-->
+            <!--</div>-->
+            <!--</div>-->
+            <!--<div class="form-group">-->
+            <!--<div class="col-sm-2 control-label">最后修改人</div>-->
+            <!--<div class="col-sm-10">-->
+            <!--<input type="text" class="form-control" v-model="newsInfo.modifyuser" placeholder="最后修改人"/>-->
+            <!--</div>-->
+            <!--</div>-->
+            <!--<div class="form-group">-->
+            <!--<div class="col-sm-2 control-label">状态-->
+            <!--</div>-->
+            <!--<div class="col-sm-10">-->
+
+            <!--0草稿/下架-->
+            <!--1已发布/上架"/>-->
+            <!--</div>-->
+            <!--</div>-->
+            <div class="form-group">
+                <div class="col-sm-2 control-label"></div>
+                <input type="button" class="btn btn-primary" @click="saveOrUpdate(1)" value="发布"/>
+                &nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="saveOrUpdate(0)" value="暂存"/>
+                &nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../../js/modules/news/newsinfo.js">
+</script>
+<script>
+    var um ;
+    $(function () {
+
+        um = UM.getEditor('myEditor', {
+            //这里可以选择自己需要的工具按钮名称,此处仅选择如下七个
+            toolbars: [
+                [
+                    'anchor', //锚点
+                    'undo', //撤销
+                    'redo', //重做
+                    'bold', //加粗
+                    'indent', //首行缩进
+                    'snapscreen', //截图
+                    'italic', //斜体
+                    'underline', //下划线
+                    'strikethrough', //删除线
+                    'subscript', //下标
+                    'fontborder', //字符边框
+                    'superscript', //上标
+                    'formatmatch', //格式刷
+                    'source', //源代码
+                    'blockquote', //引用
+                    'pasteplain', //纯文本粘贴模式
+                    'selectall', //全选
+                    'print', //打印
+                    'preview', //预览
+                    'horizontal', //分隔线
+                    'removeformat', //清除格式
+                    'time', //时间
+                    'date', //日期
+                    'unlink', //取消链接
+                    'insertrow', //前插入行
+                    'insertcol', //前插入列
+                    'mergeright', //右合并单元格
+                    'mergedown', //下合并单元格
+                    'deleterow', //删除行
+                    'deletecol', //删除列
+                    'splittorows', //拆分成行
+                    'splittocols', //拆分成列
+                    'splittocells', //完全拆分单元格
+                    'deletecaption', //删除表格标题
+                    'inserttitle', //插入标题
+                    'mergecells', //合并多个单元格
+                    'deletetable', //删除表格
+                    'cleardoc', //清空文档
+                    'insertparagraphbeforetable', //"表格前插入行"
+                    'insertcode', //代码语言
+                    'fontfamily', //字体
+                    'fontsize', //字号
+                    'paragraph', //段落格式
+                    'simpleupload', //单图上传
+                    'insertimage', //多图上传
+                    'edittable', //表格属性
+                    'edittd', //单元格属性
+                    'link', //超链接
+                    'emotion', //表情
+                    'spechars', //特殊字符
+                    'searchreplace', //查询替换
+                    'map', //Baidu地图
+                    'gmap', //Google地图
+                    'insertvideo', //视频
+                    'help', //帮助
+                    'justifyleft', //居左对齐
+                    'justifyright', //居右对齐
+                    'justifycenter', //居中对齐
+                    'justifyjustify', //两端对齐
+                    'forecolor', //字体颜色
+                    'backcolor', //背景色
+                    'insertorderedlist', //有序列表
+                    'insertunorderedlist', //无序列表
+                    'fullscreen', //全屏
+                    'directionalityltr', //从左向右输入
+                    'directionalityrtl', //从右向左输入
+                    'rowspacingtop', //段前距
+                    'rowspacingbottom', //段后距
+                    'pagebreak', //分页
+                    'insertframe', //插入Iframe
+                    'imagenone', //默认
+                    'imageleft', //左浮动
+                    'imageright', //右浮动
+                    'attachment', //附件
+                    'imagecenter', //居中
+                    'wordimage', //图片转存
+                    'lineheight', //行间距
+                    'edittip ', //编辑提示
+                    'customstyle', //自定义标题
+                    'autotypeset', //自动排版
+                    'webapp', //百度应用
+                    'touppercase', //字母大写
+                    'tolowercase', //字母小写
+                    'background', //背景
+                    'template', //模板
+                    'scrawl', //涂鸦
+                    'music', //音乐
+                    'inserttable', //插入表格
+                    'drafts', // 从草稿箱加载
+                    'charts', // 图表
+                ]
+            ],
+            //focus时自动清空初始化时的内容
+            autoClearinitialContent: true,
+            //关闭字数统计
+            wordCount: false,
+            //关闭elementPath
+            elementPathEnabled: false,
+            //默认的编辑区域高度
+            initialFrameHeight: 300
+            //更多其他参数，请参考umeditor.config.js中的配置项
+        });
+    })
+
+</script>
+</body>
+</html>

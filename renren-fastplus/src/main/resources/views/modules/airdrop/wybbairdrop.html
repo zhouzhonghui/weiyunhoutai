@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="../../css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../css/animate.css">
+    <link rel="stylesheet" href="../../css/loading.css">
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <script src="../../libs/jquery.min.js"></script>
+    <script src="../../plugins/layer/layer.js"></script>
+    <script src="../../libs/bootstrap.min.js"></script>
+    <script src="../../libs/vue.min.js"></script>
+    <script src="../../plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="../../plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="../../plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="../../js/common.js"></script>
+    <script src="../../libs/ajaxupload.js"></script>
+    <script src="../../libs/bootstrap-datetimepicker.min.js"></script>
+    <script src="../../libs/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+    <script src="../../libs/loading.js"></script>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <table id="jqAddress" border="0"></table>
+        <div class=" row">
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <div class="input-group date form_datetime col-md-15" data-date="" data-date-format="yyyy-mm-dd"  data-link-format="yyyy-mm-dd" data-link-field="date">
+                        <input class="form-control" size="16" type="text" value="" readonly>
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>
+                    </div>
+                    <input type="hidden" id="date" value="" />
+                </div>
+            </div>
+            <div class=" col-sm-2">
+                <div class="form-group"  style="padding-left: 20px;">
+                    <input type="text" class="form-control" id="filename" name="filename" placeholder="导入文件名">
+                </div>
+            </div>
+            <div class=" col-sm-1">
+                <div class="form-group"  style="padding-left: 20px;">
+                    <a class="btn btn-primary" @click="queryByConditions">查询</a>
+                </div>
+            </div>
+            <div class=" col-sm-2">
+                <div class="form-group"  style="padding-left: 50px;">
+                    <a class="btn btn-primary"  id="uploadFile"><i class="fa fa-plus"></i>&nbsp;导入Excel</a>
+                </div>
+            </div>
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+    <div v-show="!showList" class="panel panel-default">
+        <div class="panel-heading">{{title}}</div>
+        <form class="form-horizontal">
+                  <div class="form-group">
+                        <div class="col-sm-2 control-label"></div>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" v-model="wybbAirdrop.address" placeholder=""/>
+                        </div>
+                  </div>
+                  <div class="form-group">
+                        <div class="col-sm-2 control-label"></div>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" v-model="wybbAirdrop.amount" placeholder=""/>
+                        </div>
+                  </div>
+                  <div class="form-group">
+                        <div class="col-sm-2 control-label"></div>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" v-model="wybbAirdrop.remark1" placeholder=""/>
+                        </div>
+                  </div>
+                                                                <div class="form-group">
+                        <div class="col-sm-2 control-label"></div>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" v-model="wybbAirdrop.remark2" placeholder=""/>
+                        </div>
+                    </div>
+                                        <div class="form-group">
+                <div class="col-sm-2 control-label"></div>
+                <input type="button" class="btn btn-primary" @click="saveOrUpdate" value="确定"/>
+                &nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../../js/modules/airdrop/wybbairdrop.js"></script>
+<script>
+    $('.form_datetime').datetimepicker({
+        language:  'zh-CN',
+        weekStart: 1,
+        todayBtn:  1,
+        autoclose: 1,
+        todayHighlight: 1,
+        startView: 2,
+        minView: 2,
+        forceParse: 0
+    });
+</script>
+</body>
+</html>

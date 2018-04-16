@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.c2c.dao.PaymentMethodDao">
+
+    <!-- 新增 -->
+    <insert id="save" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="id">
+        insert into `mc_payment_method`
+            (`payment_name`, `bank_card_name`, `bank_card_no`, `bank_card_address`, `name`, `pay_qrcode`, `volunteer_id`, `created_at`, `updated_at`, `remark`, `state`, `sort`)
+        values
+        <foreach collection="pmList" item="pm" index="index" separator=",">
+            (#{pm.paymentName}, #{pm.bankCardName}, #{pm.bankCardNo}, #{pm.bankCardAddress}, #{pm.name}, #{pm.payQrcode}, #{pm.volunteerId}, now(), #{pm.updatedAt}, #{pm.remark}, #{pm.state}, #{pm.sort})
+        </foreach>
+    </insert>
+
+    <update id="update" parameterType="java.util.Map">
+        update `mc_payment_method` pm
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="pm.name = case" suffix="end,">
+                <foreach collection="paymentMethodList" item="paymentMethod">
+                    <if test="paymentMethod.name != null">
+                        when id = #{paymentMethod.id} then #{paymentMethod.name}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="pm.bank_card_name = case" suffix="end,">
+                <foreach collection="paymentMethodList" item="paymentMethod">
+                    <if test="paymentMethod.bankCardName != null">
+                        when id = #{paymentMethod.id} then #{paymentMethod.bankCardName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="pm.bank_card_no = case" suffix="end,">
+                <foreach collection="paymentMethodList" item="paymentMethod">
+                    <if test="paymentMethod.bankCardNo != null">
+                        when id = #{paymentMethod.id} then #{paymentMethod.bankCardNo}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="pm.bank_card_address = case" suffix="end,">
+                <foreach collection="paymentMethodList" item="paymentMethod">
+                    <if test="paymentMethod.bankCardAddress != null">
+                        when id = #{paymentMethod.id} then #{paymentMethod.bankCardAddress}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="pm.pay_qrcode = case" suffix="end,">
+                <foreach collection="paymentMethodList" item="paymentMethod">
+                    <if test="paymentMethod.payQrcode != null">
+                        when id = #{paymentMethod.id} then #{paymentMethod.payQrcode}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="pm.state = case" suffix="end,">
+                <foreach collection="paymentMethodList" item="paymentMethod">
+                    <if test="paymentMethod.state != null">
+                        when id = #{paymentMethod.id} then #{paymentMethod.state}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="pm.updated_at = case" suffix="end,">
+                <foreach collection="paymentMethodList" item="paymentMethod">
+                    when id = #{paymentMethod.id} then now()
+                </foreach>
+            </trim>
+        </trim>
+
+        <where>
+            <foreach collection="paymentMethodList" separator="or" item="paymentMethod">
+                id = #{paymentMethod.id}
+            </foreach>
+        </where>
+    </update>
+</mapper>

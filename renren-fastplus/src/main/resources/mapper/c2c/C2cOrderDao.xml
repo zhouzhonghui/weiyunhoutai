@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.c2c.dao.C2cOrderDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.c2c.entity.C2cOrderEntity" id="c2cOrderResultMap">
+        <result property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="volunteerId" column="volunteer_id"/>
+        <result property="volunteerName" column="volunteer_name"/>
+        <result property="additionalCode" column="additional_code"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="price" column="price"/>
+        <result property="number" column="number"/>
+        <result property="paymentMethodId" column="payment_method_id"/>
+        <result property="paymentName" column="payment_name"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="remark" column="remark"/>
+        <result property="state" column="state" />
+        <result property="sort" column="sort"/>
+        <!--<result property="productOrderId" column="product_order_id"/>-->
+        <result property="c2cOrderNo" column="c2c_order_no"/>
+        <result property="version" column="version"/>
+        <result property="payOverTime" column="pay_over_time"/>
+        <result property="payedTime" column="payed_time" />
+        <result property="transactionHash" column="transaction_hash" />
+
+        <association property="member" javaType="io.renren.modules.member.entity.MemberEntity">
+            <result property="id" column="id"/>
+            <result property="mobile" column="mobile"/>
+        </association>
+
+        <association property="productOrder" javaType="io.renren.modules.c2c.entity.ProductOrderEntity">
+            <result property="id" column="id"/>
+            <result property="priceUnit" column="price_unit"/>
+        </association>
+    </resultMap>
+    
+    <sql id="query_where">
+        <where>
+            co.`member_id` = m.`id` and co.`product_order_id` = cpo.`id`
+            <!-- 支付币种 -->
+            <!--<if test="paymentName != null and paymentName.trim() != ''">
+                and co.`payment_name` = #{paymentName}
+            </if>-->
+
+            <!-- 订单状态 -->
+            <if test="state != null and state.trim() != ''">
+                AND co.`state` = #{state}
+            </if>
+            <!-- 支付账户手机号 -->
+            <if test="mobile != null and mobile.trim() != ''">
+                and m.`mobile` like concat('%', #{mobile}, '%')
+            </if>
+            <!-- C2C订单编号 -->
+            <if test="c2cOrderNo != null and c2cOrderNo.trim() != ''">
+                and co.`c2c_order_no` = #{c2cOrderNo}
+            </if>
+            <!-- 相互保障订单编号 -->
+            <if test="orderNo != null and orderNo.trim() != ''">
+                and co.`order_no` = #{orderNo}
+            </if>
+
+            <!-- 支付方式 -->
+            <if test="paymentName != null and paymentName.trim() != ''">
+                and co.`payment_name` = #{paymentName}
+            </if>
+            <!-- 附加码 -->
+            <if test="additionalCode != null and additionalCode.trim() != ''">
+                AND co.additional_code = #{additionalCode}
+            </if>
+
+            <!-- 支付开始时间 -->
+            <if test="paidStartTime != null and paidStartTime.trim() != ''">
+                AND co.payed_time &gt;= #{paidStartTime}
+            </if>
+            <!-- 支付结束时间 -->
+            <if test="paidEndTime != null and paidEndTime.trim() != ''">
+                AND co.payed_time &lt;= #{paidEndTime}
+            </if>
+
+            <!-- 创建开始时间 -->
+            <if test="createdStartTime != null and createdStartTime.trim() != ''">
+                AND co.created_at &gt;= #{createdStartTime}
+            </if>
+            <!-- 创建结束时间 -->
+            <if test="createdEndTime != null and createdEndTime.trim() != ''">
+                AND co.created_at &lt;= #{createdEndTime}
+            </if>
+
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+    </sql>
+
+    <!-- 查询总数 -->
+    <select id="queryTotal" resultType="int">
+        SELECT count(*) FROM `mc_c2c_order` co, `wybb_member` m, `mc_c2c_product_order` cpo
+        <include refid="query_where" />
+    </select>
+
+    <!-- 查询列表 -->
+    <select id="queryList" resultMap="c2cOrderResultMap">
+        SELECT * FROM `mc_c2c_order` co, `wybb_member` m, `mc_c2c_product_order` cpo
+        <include refid="query_where" />
+        order by co.`payed_time` asc, co.`id` desc
+        /*order by co.`id` desc*/
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="queryObject" resultMap="c2cOrderResultMap">
+        select *  from mc_c2c_order where `id` = #{value }
+    </select>
+
+    <!-- 新增 -->
+    <insert id="save" parameterType="io.renren.modules.c2c.entity.C2cOrderEntity" useGeneratedKeys="true" keyProperty="id"></insert>
+
+    <!-- 修改 -->
+    <update id="update" parameterType="io.renren.modules.c2c.entity.C2cOrderEntity"></update>
+
+    <!-- 删除 -->
+    <delete id="deleteBatch"></delete>
+
+    <!-- 买家未付款，c2c订单状态修改 -->
+    <update id="updateState" parameterType="map">
+        update `mc_c2c_order` co set co.`state` = #{state}, co.`updated_at` = now(),co.version=co.version+1 where co.`id` = #{id} and version=#{version}
+    </update>
+
+    <!--  -->
+    <update id="updateTransactionHash" parameterType="map">
+        update `mc_c2c_order` co set co.`transaction_hash` = #{transactionHash}, co.`updated_at` = now(), co.version = co.version + 1 where co.`id` = #{id} and version = #{version}
+    </update>
+
+</mapper>

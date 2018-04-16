@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.airdrop.dao.WybbAirdropDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.airdrop.entity.WybbAirdropEntity" id="wybbAirdropMap">
+        <result property="id" column="id"/>
+        <result property="address" column="address"/>
+        <result property="amount" column="amount"/>
+        <result property="blocknum" column="blocknum"/>
+        <result property="tranhash" column="tranhash"/>
+        <result property="createdate" column="createdate"/>
+        <result property="remark1" column="remark1"/>
+        <result property="remark2" column="remark2"/>
+    </resultMap>
+    <select id="queryTotal" resultType="int">
+        select count(*) from wybb_airdrop
+    </select>
+    <select id="queryList" resultType="io.renren.modules.airdrop.entity.WybbAirdropEntity">
+        select * from wybb_airdrop order by id desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryListByCondition" resultType="io.renren.modules.airdrop.entity.WybbAirdropEntity">
+        select * from wybb_airdrop
+        <where>
+          <if test="date !=null and date.trim() !=''">
+              createdate=#{date}
+          </if>
+          <if test="filename !=null and filename.trim()!=''">
+              and remark2=#{filename}
+          </if>
+        </where>
+        order by id desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <insert id="save" parameterType="io.renren.modules.airdrop.entity.WybbAirdropEntity" useGeneratedKeys="true" keyProperty="id">
+        insert into wybb_airdrop
+        (
+        `address`,
+        `amount`,
+        `blocknum`,
+        `tranhash`,
+        `createdate`,
+        `remark1`,
+        `remark2`
+        )
+        values
+        (
+        #{address},
+        #{amount},
+        #{blocknum},
+        #{tranhash},
+        #{createdate},
+        #{remark1},
+        #{remark2}
+        )
+    </insert>
+
+    <update id="update" parameterType="io.renren.modules.airdrop.entity.WybbAirdropEntity">
+        update sys_oss
+        <set>
+            <if test="url != null">`url` = #{url}, </if>
+            <if test="createDate != null">`create_date` = #{createDate}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from sys_oss where id = #{value}
+    </delete>
+</mapper>

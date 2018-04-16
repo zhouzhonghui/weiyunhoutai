@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.member.dao.MemberDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.member.entity.MemberEntity" id="memberMap">
+        <result property="id" column="id"/>
+        <result property="realname" column="realname"/>
+        <result property="mobile" column="mobile"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="queryTotal" resultType="int">
+        select count(*) from wybb_member
+        <where>
+            1 = 1
+            <if test="mobile != null and mobile.trim() != ''">
+               and `mobile` like concat('%',#{mobile},'%')
+            </if>
+            <!-- 开始时间 -->
+            <if test="startDate != null and startDate.trim() != ''">
+                AND created_at &gt;= #{startDate}
+            </if>
+            <!-- 结束时间 -->
+            <if test="endDate != null and endDate.trim() != ''">
+                AND created_at &lt;= #{endDate}
+            </if>
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+    </select>
+
+    <select id="queryList" resultType="io.renren.modules.member.entity.MemberEntity">
+        select * from wybb_member
+        <where>
+            <if test="mobile != null and mobile.trim() != ''">
+                `mobile` like concat('%',#{mobile},'%')
+            </if>
+            <!-- 开始时间 -->
+            <if test="startDate != null and startDate.trim() != ''">
+                AND created_at &gt;= #{startDate}
+            </if>
+            <!-- 结束时间 -->
+            <if test="endDate != null and endDate.trim() != ''">
+                AND created_at &lt;= #{endDate}
+            </if>
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+        order by id desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryObject" resultType="io.renren.modules.member.entity.MemberEntity">
+		select * from wybb_member where id = #{value}
+	</select>
+
+    <insert id="save" parameterType="io.renren.modules.member.entity.MemberEntity" useGeneratedKeys="true" keyProperty="id"> </insert>
+
+    <update id="update" parameterType="io.renren.modules.member.entity.MemberEntity">
+        update wybb_member
+        <set>
+            <if test="realname != null">`realname` = #{realname},</if>
+            <if test="mobile != null">`mobile` = #{mobile},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBatch">
+        delete from wybb_member where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

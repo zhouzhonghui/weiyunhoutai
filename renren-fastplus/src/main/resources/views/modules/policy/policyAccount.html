@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/daterangepicker.css">
+    <link rel="stylesheet" href="../../css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <script src="../../libs/jquery.min.js"></script>
+    <script src="../../plugins/layer/layer.js"></script>
+    <script src="../../libs/bootstrap.min.js"></script>
+    <script src="../../libs/vue.min.js"></script>
+    <script src="../../plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="../../plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="../../plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="../../js/common.js"></script>
+    <script src="../../libs/moment.js"></script>
+    <script src="../../libs/daterangepicker.js"></script>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <form class="form-horizontal row" style="width: 100%;">
+                <div class="form-group col-xs-3">
+                    <label class="col-sm-4 control-label" for="mobile">会员手机号</label>
+                    <div class="col-sm-8">
+                        <input id="mobile" type="text" class="form-control" v-model="q.mobile" @keyup.enter="query" placeholder="会员手机号">
+                    </div>
+                </div>
+                <div class="form-group col-xs-3">
+                    <label class="col-sm-4 control-label" for="created_time">创建时间</label>
+                    <div class="col-sm-8">
+                        <input id="created_time" class="form-control" placeholder="创建起止时间"/>
+                    </div>
+                </div>
+                <div class="form-group col-xs-3" style="float: right">
+                    <label class="col-sm-4 control-label"></label>
+                    <div class="col-sm-3" style="float: right">
+                        <a class="btn btn-default" @click="query">查询</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div id="toolbar_btn" style="margin-left: 20px;">
+            <a v-if="hasPermission('manager:policy:policyAccount:view')"   class="btn btn-primary btn-sm" @click="view"><i class="fa fa-eye"></i>&nbsp;查看</a>
+            <a v-if="hasPermission('manager:policy:policyAccount:save')"   class="btn btn-primary btn-sm" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+            <a v-if="hasPermission('manager:policy:policyAccount:update')" class="btn btn-primary btn-sm" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+            <a v-if="hasPermission('manager:policy:policyAccount:delete')" class="btn btn-primary btn-sm" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+    <div v-show="!showList" class="panel panel-default">
+        <div class="panel-heading"><strong>{{title}}</strong></div>
+        <form class="form-horizontal" style="width: 80%">
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="coinInfoNameEN">币种名称</label>
+                <div class="col-sm-3">
+                    <input id="coinInfoNameEN" type="text" class="form-control" v-model="policyAccount.coinInfo.nameEN" readonly placeholder="" />
+                </div>
+                <label class="col-sm-2 control-label" for="accountAddress">币账户地址</label>
+                <div class="col-sm-3">
+                    <input id="accountAddress" type="text" class="form-control" v-model="policyAccount.accountAddress" readonly placeholder="" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="policyNo">保单号</label>
+                <div class="col-sm-3">
+                    <input id="policyNo" type="text" class="form-control" v-model="policyAccount.lifePolicy.policyNo" readonly placeholder="" />
+                </div>
+                <label class="col-sm-2 control-label" for="createdAt">创建时间</label>
+                <div class="col-sm-3">
+                    <input id="createdAt" type="text" class="form-control" v-model="policyAccount.createdAt" readonly placeholder="" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="availableAmount">可用金额</label>
+                <div class="col-sm-3">
+                    <input id="availableAmount" type="text" class="form-control" v-model="policyAccount.availableAmount" readonly placeholder="" />
+                </div>
+                <label class="col-sm-2 control-label" for="freezeAmount">冻结金额</label>
+                <div class="col-sm-3">
+                    <input id="freezeAmount" type="text" class="form-control" v-model="policyAccount.freezeAmount" readonly placeholder="" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="memberMobile">会员手机号</label>
+                <div class="col-sm-3">
+                    <input id="memberMobile" type="text" class="form-control" v-model="policyAccount.member.mobile" readonly placeholder="" />
+                </div>
+                <label class="col-sm-2 control-label" for="state">状态</label>
+                <div class="col-sm-3">
+                    <input id="state" type="text" class="form-control" v-model="policyAccount.state" readonly placeholder="" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label"></label>
+                <input type="button" class="btn btn-primary" @click="saveOrUpdate" value="确定" style="display: none" />&nbsp;&nbsp;
+                <input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../../js/modules/policy/policyAccount.js"></script>
+</body>
+</html>

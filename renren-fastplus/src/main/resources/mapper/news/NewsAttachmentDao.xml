@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="io.renren.modules.news.dao.NewsAttachmentDao" >
+  <resultMap id="BaseResultMap" type="io.renren.modules.news.entity.NewsAttachment" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="attatype" property="attatype" jdbcType="CHAR" />
+    <result column="urlpath" property="urlpath" jdbcType="VARCHAR" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="sort" property="sort" jdbcType="INTEGER" />
+    <result column="attaid" property="attaid" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, attatype, urlpath, content, sort, attaid
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="io.renren.modules.news.entity.NewsAttachmentExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from news_attachment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from news_attachment
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from news_attachment
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="io.renren.modules.news.entity.NewsAttachmentExample" >
+    delete from news_attachment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="io.renren.modules.news.entity.NewsAttachment" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into news_attachment (attatype, urlpath, content, 
+      sort, attaid)
+    values (#{attatype,jdbcType=CHAR}, #{urlpath,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR}, 
+      #{sort,jdbcType=INTEGER}, #{attaid,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="io.renren.modules.news.entity.NewsAttachment" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into news_attachment
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="attatype != null" >
+        attatype,
+      </if>
+      <if test="urlpath != null" >
+        urlpath,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+      <if test="sort != null" >
+        sort,
+      </if>
+      <if test="attaid != null" >
+        attaid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="attatype != null" >
+        #{attatype,jdbcType=CHAR},
+      </if>
+      <if test="urlpath != null" >
+        #{urlpath,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="sort != null" >
+        #{sort,jdbcType=INTEGER},
+      </if>
+      <if test="attaid != null" >
+        #{attaid,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="io.renren.modules.news.entity.NewsAttachmentExample" resultType="java.lang.Integer" >
+    select count(*) from news_attachment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update news_attachment
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.attatype != null" >
+        attatype = #{record.attatype,jdbcType=CHAR},
+      </if>
+      <if test="record.urlpath != null" >
+        urlpath = #{record.urlpath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.content != null" >
+        content = #{record.content,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sort != null" >
+        sort = #{record.sort,jdbcType=INTEGER},
+      </if>
+      <if test="record.attaid != null" >
+        attaid = #{record.attaid,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update news_attachment
+    set id = #{record.id,jdbcType=BIGINT},
+      attatype = #{record.attatype,jdbcType=CHAR},
+      urlpath = #{record.urlpath,jdbcType=VARCHAR},
+      content = #{record.content,jdbcType=VARCHAR},
+      sort = #{record.sort,jdbcType=INTEGER},
+      attaid = #{record.attaid,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="io.renren.modules.news.entity.NewsAttachment" >
+    update news_attachment
+    <set >
+      <if test="attatype != null" >
+        attatype = #{attatype,jdbcType=CHAR},
+      </if>
+      <if test="urlpath != null" >
+        urlpath = #{urlpath,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="sort != null" >
+        sort = #{sort,jdbcType=INTEGER},
+      </if>
+      <if test="attaid != null" >
+        attaid = #{attaid,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="io.renren.modules.news.entity.NewsAttachment" >
+    update news_attachment
+    set attatype = #{attatype,jdbcType=CHAR},
+      urlpath = #{urlpath,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      sort = #{sort,jdbcType=INTEGER},
+      attaid = #{attaid,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

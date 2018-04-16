@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.order.dao.OrderDao">
+
+    <resultMap type="io.renren.modules.order.entity.OrderEntity" id="orderResultMap">
+        <result property="id" column="id"/>
+        <result property="orderType" column="order_type"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="accruedMoney" column="accrued_money"/>
+        <result property="actualMoney" column="actual_money"/>
+        <result property="toAddress" column="to_address"/>
+        <result property="state" column="state"/>
+        <result property="paymentName" column="payment_name"/>
+        <result property="insuredPeopleName" column="insuredPeople_name"/>
+        <result property="paidTime" column="paid_time"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="version" column="version"/>
+        <association property="member" javaType="io.renren.modules.member.entity.MemberEntity">
+            <result property="id" column="id"/>
+            <result property="mobile" column="mobile"/>
+        </association>
+
+        <association property="product" javaType="io.renren.modules.product.entity.ProductEntity">
+            <result property="id" column="id"/>
+            <result property="name" column="name"/>
+        </association>
+
+        <association property="lifePolicy" javaType="io.renren.modules.policy.entity.LifePolicyEntity">
+            <result property="id" column="id"/>
+            <result property="insuredPeopleName" column="insured_people_name"/>
+        </association>
+
+        <association property="coinInfo" javaType="io.renren.modules.coinInfo.entity.CoinInfoEntity">
+            <result property="id" column="id"/>
+            <result property="nameCN" column="name_cn"/>
+            <result property="nameEN" column="name_en"/>
+        </association>
+    </resultMap>
+
+    <sql id="query_where">
+        <where>
+            o.`member_id` = m.`id` and op.order_id = o.id and op.product_id = pro.id and op.policy_id = pol.id and pol.life_policy_id = lp.id
+            <if test="state != null and state.trim() != ''">
+                and o.`state` = #{state}
+            </if>
+            <if test="orderNo != null and orderNo.trim() != ''">
+                and o.`order_no` = #{orderNo}
+            </if>
+            <if test="mobile != null and mobile.trim() != ''">
+                and m.`mobile` like concat('%',#{mobile},'%')
+            </if>
+            <!-- 支付开始时间 -->
+            <if test="paidStartTime != null and paidStartTime.trim() != ''">
+                AND o.paid_time &gt;= #{paidStartTime}
+            </if>
+            <!-- 支付结束时间 -->
+            <if test="paidEndTime != null and paidEndTime.trim() != ''">
+                AND o.paid_time &lt;= #{paidEndTime}
+            </if>
+
+            <!-- 创建开始时间 -->
+            <if test="createdStartTime != null and createdStartTime.trim() != ''">
+                AND o.created_at &gt;= #{createdStartTime}
+            </if>
+            <!-- 创建结束时间 -->
+            <if test="createdEndTime != null and createdEndTime.trim() != ''">
+                AND o.created_at &lt;= #{createdEndTime}
+            </if>
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+    </sql>
+
+    <select id="queryTotal" resultType="int">
+        select count(*) from wybb_order o, wybb_member m, wybb_order_product op, wybb_product pro, wybb_policy pol, wybb_life_policy lp
+        <include refid="query_where" />
+    </select>
+
+    <select id="queryList" resultMap="orderResultMap">
+        select * from wybb_order o, wybb_member m, wybb_order_product op, wybb_product pro, wybb_policy pol, wybb_life_policy lp
+        <include refid="query_where" />
+        order by o.`id` desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryObject" resultMap="orderResultMap">
+        SELECT * FROM `wybb_order` o, `wybb_member` m, `wybb_order_product` op, `wybb_product` pro, `wybb_policy` pol, `wybb_life_policy` lp, `mc_coin_info` ci
+        <where>
+            o.`member_id` = m.`id` AND o.`id` = op.`order_id` AND op.`product_id` = pro.`id` AND op.`policy_id` = pol.`id` AND pol.`life_policy_id` = lp.`id` AND o.`coin_info_id` = ci.`id` AND o.`id` = #{value}
+        </where>
+	</select>
+
+    <insert id="save" parameterType="io.renren.modules.order.entity.OrderEntity" useGeneratedKeys="true" keyProperty="id"> </insert>
+
+    <update id="update" parameterType="io.renren.modules.order.entity.OrderEntity">
+        update wybb_order
+        <set>
+            <!--<if test="realname != null">`realname` = #{realname},</if>-->
+            <!--<if test="mobile != null">`mobile` = #{mobile},</if>-->
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBatch">
+        delete from wybb_order where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="queryOrder" resultMap="orderResultMap">
+        SELECT * FROM `wybb_order` o where o.`id` = #{value}
+
+    </select>
+    <update id="updateFromAddress" parameterType="map">
+    update `wybb_order`  set `from_address` = #{fromAddress}, `updated_at` = now(),version=version+1 where `id` = #{id} and version=#{version}
+
+</update>
+    <update id="updateState" parameterType="map">
+        update `wybb_order`  set `state` = #{state}, `updated_at` = now(),version=version+1 where `id` = #{id} and version=#{version}
+
+    </update>
+</mapper>

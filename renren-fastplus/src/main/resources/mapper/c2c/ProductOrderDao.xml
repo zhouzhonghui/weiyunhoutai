@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.c2c.dao.ProductOrderDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.c2c.entity.ProductOrderEntity" id="productOrderResultMap">
+        <result property="id" column="id"/>
+        <result property="name" column="cpo_name"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="price" column="price"/>
+        <result property="number" column="number"/>
+        <result property="priceUnit" column="price_unit"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="state" column="state"/>
+
+        <association property="product" javaType="io.renren.modules.product.entity.ProductEntity">
+            <result property="id" column="p_id"/>
+            <result property="name" column="p_name"/>
+        </association>
+
+        <association property="volunteer" javaType="io.renren.modules.c2c.entity.VolunteerEntity">
+            <result property="id" column="v_id"/>
+            <result property="name" column="v_name"/>
+        </association>
+
+    </resultMap>
+    
+    <sql id="base_column">
+        cpo.id as id,
+        cpo.name as cpo_name,
+        p.id as p_id,
+        p.name as p_name,
+        v.id as v_id,
+        v.name as v_name,
+        cpo.total_amount as total_amount,
+        cpo.price as price,
+        cpo.number as number,
+        cpo.price_unit as price_unit,
+        cpo.created_at as created_at,
+        cpo.updated_at as updated_at,
+        cpo.state as state
+    </sql>
+    
+    <sql id="query_where">
+        <where>
+            cpo.`product_id` = p.`id` and cpo.`volunteer_id` = v.`id` and cpo.state = 1
+            <!-- 义工 -->
+            <if test="vId != null and vId.trim() != ''">
+                and v.`id` = #{vId}
+            </if>
+            <!-- 产品 -->
+            <if test="productId != null and productId.trim() != ''">
+                and p.`id` = #{productId}
+            </if>
+            <!-- 创建开始时间 -->
+            <if test="createdStartTime != null and createdStartTime.trim() != ''">
+                AND cpo.created_at &gt;= #{createdStartTime}
+            </if>
+            <!-- 创建结束时间 -->
+            <if test="createdEndTime != null and createdEndTime.trim() != ''">
+                AND cpo.created_at &lt;= #{createdEndTime}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询总数 -->
+    <select id="queryTotal" resultType="int">
+        select count(1) from `mc_c2c_product_order` cpo, `wybb_product` p, `mc_volunteer` v
+        <include refid="query_where" />
+    </select>
+
+    <!-- 查询列表 -->
+    <select id="queryList" resultMap="productOrderResultMap"> <!--  resultMap="productOrderResultMap" -->
+        select
+        <include refid="base_column" />
+        from `mc_c2c_product_order` cpo, `wybb_product` p, `mc_volunteer` v
+        <include refid="query_where" />
+        order by cpo.`id` desc
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="queryObject" resultMap="productOrderResultMap">
+        select <include refid="base_column" /> from `mc_c2c_product_order` cpo, `wybb_product` p, `mc_volunteer` v where cpo.`product_id` = p.`id` and cpo.`volunteer_id` = v.`id` and cpo.id = #{value}
+    </select>
+
+    <!-- 新增 -->
+    <insert id="save" parameterType="io.renren.modules.c2c.entity.ProductOrderEntity" useGeneratedKeys="true" keyProperty="id">
+        insert into `mc_c2c_product_order`
+          (`product_id`, `volunteer_id`, `total_amount`, `price`, `number`, `price_unit`, `created_at`, `updated_at`, `remark`, `state`, `sort`)
+        values
+          (#{product.id}, #{volunteer.id}, #{totalAmount}, #{price}, #{number}, #{priceUnit}, now(), #{updatedAt}, #{remark}, ${state}, #{sort})
+    </insert>
+
+    <!-- 修改 -->
+    <update id="update" parameterType="io.renren.modules.c2c.entity.ProductOrderEntity">
+        UPDATE
+          `mc_c2c_product_order`
+        SET
+          `name` = #{name},
+          `product_id` = #{product.id},
+          `volunteer_id` = #{volunteer.id},
+          `total_amount` = #{totalAmount},
+          `price` = #{price},
+          `number` = #{number},
+          `price_unit` = #{priceUnit},
+          `updated_at` = NOW()
+        where
+          id = #{id}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="delete">
+        UPDATE
+          `mc_c2c_product_order`
+        SET
+          `state` = 9
+        WHERE
+          `id` IN
+            <foreach item="id" collection="array" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+    </delete>
+
+</mapper>

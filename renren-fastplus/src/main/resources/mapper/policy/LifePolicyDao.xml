@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.policy.dao.LifePolicyDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.policy.entity.LifePolicyEntity" id="lifePolicyResultMap">
+
+        <result property="id" column="id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+
+        <result property="remark" column="remark"/>
+        <result property="sort" column="sort"/>
+        <result property="state" column="state"/>
+        <result property="baseInsuranceAmount" column="base_insurance_amount"/>
+        <result property="insuranceEndDate" column="insurance_end_date"/>
+        <result property="insurancePrice" column="insurance_price"/>
+        <result property="insuranceStartDate" column="insurance_start_date"/>
+        <result property="insuranceTimeLimit" column="insurance_time_limit"/>
+        <result property="insuredAge" column="insured_age"/>
+        <result property="insuredNo" column="insured_no"/>
+        <result property="paymentMethods" column="payment_methods"/>
+        <result property="policyNo" column="policy_no"/>
+        <result property="quantity" column="quantity"/>
+        <result property="beneficiaryId" column="beneficiary_id"/>
+        <result property="holderPeopleId" column="holder_people_id"/>
+        <result property="insuredPeopleId" column="insured_people_id"/>
+        <result property="sourceOrderId" column="source_order_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="hospital" column="hospital"/>
+        <result property="itemName" column="item_name"/>
+        <result property="optDate" column="opt_date"/>
+        <result property="insuredRemark" column="insured_remark"/>
+        <result property="insurePayWay" column="insure_pay_way"/>
+        <result property="insureTime" column="insure_time"/>
+        <result property="underwriteTime" column="underwrite_time"/>
+        <result property="durationPeriodValue" column="duration_period_value"/>
+        <result property="bankCode" column="bank_code"/>
+        <result property="accNo" column="acc_no"/>
+        <result property="secretKey" column="secret_key"/>
+        <result property="insuredPeopleCard" column="insured_people_card"/>
+        <result property="insuredPeopleName" column="insured_people_name"/>
+        <result property="countryId" column="country_id"/>
+        <result property="ucName" column="uc_name"/>
+        <result property="ucMobile" column="uc_mobile"/>
+        <result property="ucEmail" column="uc_email"/>
+        <result property="ucCountryId" column="uc_country_id"/>
+        <result property="nationCode" column="nation_code"/>
+
+        <association property="member" javaType="io.renren.modules.member.entity.MemberEntity">
+            <result property="id" column="id"/>
+            <result property="mobile" column="mobile"/>
+        </association>
+        <association property="product" javaType="io.renren.modules.product.entity.ProductEntity">
+            <result property="id" column="id"/>
+            <result property="name" column="name"/>
+        </association>
+        <association property="policyAccount" javaType="io.renren.modules.policy.entity.PolicyAccountEntity">
+            <result property="id" column="id"/>
+            <result property="availableAmount" column="available_amount"/>
+        </association>
+        <association property="coinInfo" javaType="io.renren.modules.coinInfo.entity.CoinInfoEntity">
+            <result property="id" column="id"/>
+            <result property="nameCN" column="name_cn"/>
+            <result property="nameEN" column="name_en"/>
+        </association>
+    </resultMap>
+
+
+    <select id="queryTotal" resultType="int">
+        SELECT count(*) FROM `wybb_life_policy` lp, `wybb_member` m, `wybb_product` p, `mc_policy_account` pa
+        <where>
+            lp.`product_id` = p.`id` AND pa.`life_policy_id` = lp.`id` AND lp.`member_id` = m.`id`
+
+            <if test="type != null and type.trim() != ''">
+                <if test="type == 'observation'">
+                    AND p.`ob_days` &gt; 1 AND lp.`state` = 1 AND pa.`available_amount` &gt; 0 AND DATEDIFF(DATE_ADD(lp.`insurance_start_date`, INTERVAL p.`ob_days` DAY), NOW()) &gt; 0
+                </if>
+                <if test="type == 'effective'">
+                    AND lp.`state` = 1 AND pa.`available_amount` &gt; 0 AND DATEDIFF(lp.`insurance_start_date`, NOW()) &lt; 0
+                </if>
+                <if test="type == 'invalid'">
+                    AND (lp.`state` = 2 or (lp.`state` = 1 AND pa.`available_amount` &lt;= 0))
+                </if>
+            </if>
+
+            <if test="mobile != null and mobile.trim() != ''">
+                and m.`mobile` like concat('%', #{mobile}, '%')
+            </if>
+            <if test="productId != null and productId.trim() != ''">
+                and p.`id` = #{productId}
+            </if>
+            <if test="insuredPeopleName != null and insuredPeopleName.trim() != ''">
+                and lp.`insured_people_name` like concat('%', #{insuredPeopleName}, '%')
+            </if>
+            <if test="insuredPeopleCard != null and insuredPeopleCard.trim() != ''">
+                and lp.`insured_people_card` like concat('%', #{insuredPeopleCard}, '%')
+            </if>
+            <if test="insuranceStartTime != null and insuranceStartTime.trim() != ''">
+                and lp.`insurance_start_date` &gt;= #{insuranceStartTime}
+            </if>
+            <if test="insuranceEndTime != null and insuranceEndTime.trim() != ''">
+                and lp.`insurance_start_date` &lt;= #{insuranceEndTime}
+            </if>
+            <if test="createdStartTime != null and createdStartTime.trim() != ''">
+                and lp.`created_at` &gt;= #{createdStartTime}
+            </if>
+            <if test="createdEndTime != null and createdEndTime.trim() != ''">
+                and lp.`created_at` &lt;= #{createdEndTime}
+            </if>
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+    </select>
+
+    <select id="queryList" resultMap="lifePolicyResultMap">
+        select * from `wybb_life_policy` lp, `wybb_member` m, `wybb_product` p, `mc_policy_account` pa
+        <where>
+            lp.`product_id` = p.`id` and pa.`life_policy_id` = lp.`id` and lp.`member_id` = m.`id`
+
+            <if test="type != null and type.trim() != ''">
+                <if test="type == 'observation'">
+                    and p.`ob_days` &gt; 1 and lp.`state` = 1 and pa.`available_amount` &gt; 0 and datediff(date_add(lp.`insurance_start_date`, interval p.`ob_days` day), now()) &gt; 0
+                </if>
+                <if test="type == 'effective'">
+                    and lp.`state` = 1 and pa.`available_amount` &gt; 0 and datediff(lp.`insurance_start_date`, now()) &lt; 0
+                </if>
+                <if test="type == 'invalid'">
+                    and (lp.`state` = 2 or (lp.`state` = 1 and pa.`available_amount` &lt;= 0))
+                </if>
+            </if>
+
+            <if test="mobile != null and mobile.trim() != ''">
+                and m.`mobile` like concat('%', #{mobile}, '%')
+            </if>
+            <if test="productId != null and productId.trim() != ''">
+                and p.`id` = #{productId}
+            </if>
+            <if test="insuredPeopleName != null and insuredPeopleName.trim() != ''">
+                and lp.`insured_people_name` like concat('%', #{insuredPeopleName}, '%')
+            </if>
+            <if test="insuredPeopleCard != null and insuredPeopleCard.trim() != ''">
+                and lp.`insured_people_card` like concat('%', #{insuredPeopleCard}, '%')
+            </if>
+            <if test="insuranceStartTime != null and insuranceStartTime.trim() != ''">
+                and lp.`insurance_start_date` &gt;= #{insuranceStartTime}
+            </if>
+            <if test="insuranceEndTime != null and insuranceEndTime.trim() != ''">
+                and lp.`insurance_start_date` &lt;= #{insuranceEndTime}
+            </if>
+            <if test="createdStartTime != null and createdStartTime.trim() != ''">
+                and lp.`created_at` &gt;= #{createdStartTime}
+            </if>
+            <if test="createdEndTime != null and createdEndTime.trim() != ''">
+                and lp.`created_at` &lt;= #{createdEndTime}
+            </if>
+
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+        ORDER BY lp.`id` DESC
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryObject" resultMap="lifePolicyResultMap">
+        SELECT * FROM `wybb_life_policy` lp, `wybb_member` m, `wybb_product` p, `mc_policy_account` pa, `mc_coin_info` ci
+        <where>
+            lp.`product_id` = p.`id` AND pa.`life_policy_id` = lp.`id` AND lp.`member_id` = m.`id` AND lp.`coin_info_id` = ci.`id` AND lp.`id` = #{value}
+        </where>
+	</select>
+
+    <insert id="save" parameterType="io.renren.modules.policy.entity.LifePolicyEntity" useGeneratedKeys="true" keyProperty="id"></insert>
+
+    <update id="update" parameterType="io.renren.modules.policy.entity.LifePolicyEntity">
+        update wybb_life_policy
+        <set>
+            <!--<if test="realname != null">`realname` = #{realname},</if>-->
+            <!--<if test="mobile != null">`mobile` = #{mobile},</if>-->
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBatch">
+        delete from wybb_life_policy where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

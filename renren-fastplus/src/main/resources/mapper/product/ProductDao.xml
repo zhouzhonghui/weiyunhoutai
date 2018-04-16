@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.product.dao.ProductDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.product.entity.ProductEntity" id="productResultMap">
+        <result property="id" column="id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="remark" column="remark"/>
+        <result property="sort" column="sort"/>
+        <result property="state" column="state"/>
+        <result property="code" column="code"/>
+        <result property="description" column="description"/>
+        <result property="image" column="image"/>
+        <result property="name" column="name"/>
+        <result property="marketPrice" column="market_price"/>
+        <result property="price" column="price"/>
+        <result property="insuranceCategoryId" column="insurance_category_id"/>
+        <result property="insuranceCompanyId" column="insurance_company_id"/>
+        <result property="organizationId" column="organization_id"/>
+        <result property="productSpec" column="product_spec"/>
+        <result property="specName" column="spec_name"/>
+        <result property="specId" column="spec_id"/>
+        <result property="shareTile" column="share_tile"/>
+        <result property="shareDesc" column="share_desc"/>
+        <result property="shareLink" column="share_link"/>
+        <result property="shareImgUrl" column="share_img_url"/>
+        <result property="validDays" column="valid_days"/>
+        <result property="plancode" column="plancode"/>
+        <result property="rate" column="rate"/>
+        <result property="suminsured" column="suminsured"/>
+        <result property="rangedate" column="rangedate"/>
+        <result property="commissionratio" column="commissionratio"/>
+        <result property="kindcode" column="kindcode"/>
+        <result property="kindind" column="kindind"/>
+        <result property="shortrate" column="shortrate"/>
+        <result property="grosspremium" column="grosspremium"/>
+        <result property="maxSuminsured" column="max_suminsured"/>
+        <result property="imageName" column="image_name"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="isHotSale" column="is_hot_sale"/>
+        <result property="couponId" column="coupon_id"/>
+        <result property="obDays" column="ob_days"/>
+        <result property="serviceBeanName" column="service_bean_name"/>
+        <result property="remarkEn" column="remark_en"/>
+        <result property="remarkKr" column="remark_kr"/>
+        <result property="imageEn" column="image_en"/>
+        <result property="imageKr" column="image_kr"/>
+        <result property="imageJp" column="image_jp"/>
+        <result property="nameEn" column="name_en"/>
+        <result property="nameKr" column="name_kr"/>
+        <result property="nameJp" column="name_jp"/>
+        <result property="tokenAddress" column="token_address"/>
+        <result property="remarkJp" column="remark_jp"/>
+        <result property="equivalence" column="equivalence"/>
+        <result property="overDate" column="over_date"/>
+    </resultMap>
+
+    <!-- 查询总数 -->
+    <select id="queryTotal" resultType="int">
+        select count(*) from `wybb_product`
+        <where>
+            1 = 1
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+    </select>
+
+    <!-- 查询列表 -->
+    <select id="queryList" resultType="io.renren.modules.product.entity.ProductEntity">
+        select * from `wybb_product`
+        <where>
+            1 = 1
+            <!--  数据过滤  -->
+            ${filterSql}
+        </where>
+        order by `id` desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+    
+    <!-- 根据ID查询 -->
+    <select id="queryObject" resultMap="productResultMap"></select>
+
+    <!-- 新增 -->
+    <insert id="save" parameterType="io.renren.modules.product.entity.ProductEntity" useGeneratedKeys="true" keyProperty="id"></insert>
+
+    <!-- 修改 -->
+    <update id="update" parameterType="io.renren.modules.product.entity.ProductEntity"></update>
+
+    <!-- 删除 -->
+    <delete id="deleteBatch"></delete>
+
+</mapper>
